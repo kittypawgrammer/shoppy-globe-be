@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ShoppyGlobe Backend — Development Plan</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --bg-soft: #1e293b;
+    --card: #ffffff;
+    --ink: #0f172a;
+    --muted: #64748b;
+    --brand: #f97316;
+    --brand-dark: #c2410c;
+    --accent: #06b6d4;
+    --good: #10b981;
+    --line: #e2e8f0;
+    --radius: 14px;
+    --shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(180deg, var(--bg) 0%, var(--bg) 340px, #f1f5f9 340px, #f1f5f9 100%);
+    color: var(--ink);
+    line-height: 1.6;
+    padding: 0 20px 64px;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; }
+
+  header { padding: 56px 0 32px; color: #fff; }
+  header .kicker {
+    display: inline-block; background: rgba(249,115,22,.15); color: #fdba74;
+    border: 1px solid rgba(249,115,22,.4); padding: 4px 12px; border-radius: 999px;
+    font-size: 12px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700;
+  }
+  header h1 { font-size: 38px; margin: 14px 0 8px; letter-spacing: -.02em; }
+  header p { color: #cbd5e1; max-width: 640px; }
+
+  .score-strip {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 14px; margin: 20px 0 8px;
+  }
+  .score-card {
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+    border-radius: 12px; padding: 14px 16px;
+  }
+  .score-card .marks { font-size: 26px; font-weight: 800; color: #fdba74; }
+  .score-card .label { font-size: 13px; color: #cbd5e1; margin-top: 2px; }
+  .total {
+    background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+    color: #fff; border-radius: 12px; padding: 14px 16px; display: flex;
+    justify-content: space-between; align-items: center;
+  }
+  .total .marks { font-size: 30px; font-weight: 800; }
+  .total .label { font-size: 13px; opacity: .9; }
+
+  h2.section {
+    font-size: 22px; margin: 44px 0 16px; letter-spacing: -.01em;
+    display: flex; align-items: center; gap: 10px;
+  }
+  h2.section .num {
+    width: 30px; height: 30px; border-radius: 8px; background: var(--brand); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800;
+  }
+
+  .stack {
+    display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px;
+  }
+  .stack span {
+    background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+    padding: 7px 14px; font-size: 13px; font-weight: 600; box-shadow: var(--shadow);
+  }
+  .stack span b { color: var(--brand-dark); }
+
+  /* Timeline */
+  .timeline { position: relative; margin: 24px 0 0; padding-left: 34px; }
+  .timeline::before {
+    content: ""; position: absolute; left: 10px; top: 8px; bottom: 8px;
+    width: 3px; background: linear-gradient(var(--brand), var(--accent));
+    border-radius: 3px;
+  }
+  .phase { position: relative; margin-bottom: 26px; }
+  .phase::before {
+    content: ""; position: absolute; left: -34px; top: 6px; width: 23px; height: 23px;
+    border-radius: 50%; background: var(--card); border: 4px solid var(--brand);
+    box-shadow: 0 0 0 5px rgba(249,115,22,.15);
+  }
+  .phase .pill {
+    display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .08em;
+    text-transform: uppercase; color: #fff; background: var(--brand);
+    padding: 3px 10px; border-radius: 999px; margin-bottom: 6px;
+  }
+  .phase h3 { font-size: 20px; margin-bottom: 4px; }
+  .phase .goal { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 22px 24px; box-shadow: var(--shadow);
+  }
+  .phase .card { padding: 18px 20px; }
+
+  .tasks { list-style: none; }
+  .tasks li {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 7px 0; border-bottom: 1px dashed var(--line); font-size: 14.5px;
+  }
+  .tasks li:last-child { border-bottom: none; }
+  .tasks li::before {
+    content: "→"; color: var(--brand); font-weight: 800; flex-shrink: 0;
+  }
+  .tasks li code {
+    background: #f1f5f9; border: 1px solid var(--line); border-radius: 6px;
+    padding: 1px 7px; font-size: 13px; color: #0f172a;
+  }
+  .deliverable {
+    display: inline-block; margin-top: 12px; font-size: 13px; font-weight: 700; color: var(--good);
+  }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } }
+
+  /* Directory tree */
+  pre.tree {
+    background: var(--bg); color: #e2e8f0; border-radius: var(--radius);
+    padding: 20px 24px; overflow-x: auto; font-size: 13.5px; line-height: 1.7;
+    font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  }
+  pre.tree .c { color: #64748b; }
+  pre.tree .d { color: #fdba74; font-weight: 700; }
+
+  /* Endpoints table */
+  table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--card); }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { background: #fff7ed; color: var(--brand-dark); font-size: 12.5px; text-transform: uppercase; letter-spacing: .06em; }
+  tr:last-child td { border-bottom: none; }
+  .method { font-weight: 800; border-radius: 6px; padding: 3px 9px; font-size: 12px; color: #fff; }
+  .m-get  { background: #10b981; }
+  .m-post { background: #f59e0b; }
+  .m-put  { background: #3b82f6; }
+  .m-del  { background: #ef4444; }
+  .lock { color: #64748b; font-size: 12px; }
+  code.path { font-family: "SF Mono", ui-monospace, Menlo, monospace; font-size: 13px; background: #f1f5f9; border: 1px solid var(--line); border-radius: 6px; padding: 2px 7px; }
+
+  .checklist { list-style: none; }
+  .checklist li { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--line); font-size: 14.5px; }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist li::before { content: "☐"; color: var(--brand); font-weight: 800; flex-shrink: 0; }
+
+  footer { margin-top: 48px; text-align: center; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="kicker">Internshala · Backend Project</span>
+    <h1>ShoppyGlobe — Backend Development Plan</h1>
+    <p>Node.js + Express + MongoDB backend with JWT auth, protected cart APIs, and a testable,
+       documented delivery. Tracked against the official marking scheme.</p>
+
+    <div class="score-strip">
+      <div class="score-card"><div class="marks">60</div><div class="label">Express API Setup</div></div>
+      <div class="score-card"><div class="marks">50</div><div class="label">MongoDB Integration</div></div>
+      <div class="score-card"><div class="marks">20</div><div class="label">Error Handling &amp; Validation</div></div>
+      <div class="score-card"><div class="marks">60</div><div class="label">Auth &amp; Authorization</div></div>
+      <div class="score-card"><div class="marks">35</div><div class="label">ThunderClient Testing</div></div>
+      <div class="total"><span class="label">Total Marks</span><span class="marks">225</span></div>
+    </div>
+  </header>
+
+  <h2 class="section"><span class="num">1</span>Tech Stack &amp; Tooling</h2>
+  <div class="stack">
+    <span><b>Node.js</b> + Express</span>
+    <span><b>TypeScript</b></span>
+    <span><b>MongoDB</b> + Mongoose</span>
+    <span><b>JWT</b> (jsonwebtoken)</span>
+    <span><b>bcryptjs</b></span>
+    <span><b>dotenv</b> / cors</span>
+    <span><b>tsx</b> (dev runner)</span>
+    <span><b>ThunderClient</b></span>
+    <span><b>MongoDB Compass</b></span>
+  </div>
+
+  <h2 class="section"><span class="num">2</span>Milestones &amp; Phases</h2>
+  <div class="timeline">
+
+    <div class="phase">
+      <span class="pill">Phase 0 · Setup</span>
+      <h3>Project Scaffolding</h3>
+      <p class="goal">Bare-bones TypeScript Express app that boots and connects to nothing yet.</p>
+      <div class="card">
+        <ul class="tasks">
+          <li>Initialize <code>package.json</code>, <code>tsconfig.json</code>, and folder structure</li>
+          <li>Install deps: <code>express</code>, <code>mongoose</code>, <code>jsonwebtoken</code>, <code>bcryptjs</code>, <code>dotenv</code>, <code>cors</code></li>
+          <li>Install dev deps: <code>typescript</code>, <code>tsx</code>, <code>@types/*</code></li>
+          <li>Add <code>.env</code>, <code>.env.example</code>, <code>.gitignore</code>, npm scripts (<code>dev</code> / <code>build</code> / <code>start</code>)</li>
+          <li>Create <code>app.ts</code> + <code>server.ts</code> with a health-check route</li>
+        </ul>
+        <span class="deliverable">✓ App runs on <code>http://localhost:3000</code></span>
+      </div>
+    </div>
+
+    <div class="phase">
+      <span class="pill">Phase 1 · 50 marks</span>
+      <h3>MongoDB Integration &amp; Models</h3>
+      <p class="goal">Connect to MongoDB, define schemas, and seed sample product data.</p>
+      <div class="card">
+        <ul class="tasks">
+          <li><code>config/db.ts</code> — Mongoose connection with graceful error handling</li>
+          <li><b>Product</b> schema: <code>name</code>, <code>price</code>, <code>description</code>, <code>stock</code>, <code>category</code></li>
+          <li><b>User</b> schema: <code>name</code>, <code>email</code>, <code>password</code> (hashed), <code>createdAt</code></li>
+          <li><b>Cart</b> schema: <code>userId</code>, <code>items[{ productId, quantity }]</code></li>
+          <li><code>seed.ts</code> — inserts ~10 realistic products (idempotent)</li>
+          <li>Implement CRUD-ready model methods for products &amp; cart</li>
+        </ul>
+        <span class="deliverable">✓ MongoDB Compass screenshots of <code>products</code>, <code>users</code>, <code>carts</code> collections</span>
+      </div>
+    </div>
+
+    <div class="phase">
+      <span class="pill">Phase 2 · 60 marks</span>
+      <h3>Products API</h3>
+      <p class="goal">Public read-only product endpoints with validation.</p>
+      <div class="card">
+        <ul class="tasks">
+          <li><code>GET /products</code> — list all products (optional <code>?search=</code> &amp; <code>?limit=</code>)</li>
+          <li><code>GET /products/:id</code> — single product by ID</li>
+          <li>Validate MongoDB <code>ObjectId</code> format → 400 on bad ID</li>
+          <li>Return 404 with a clear message when the product is missing</li>
+        </ul>
+        <span class="deliverable">✓ Both endpoints return proper JSON + error responses</span>
+      </div>
+    </div>
+
+    <div class="phase">
+      <span class="pill">Phase 3 · 60 marks</span>
+      <h3>Authentication &amp; Authorization</h3>
+      <p class="goal">Register/login with JWT, plus a middleware that guards protected routes.</p>
+      <div class="card">
+        <ul class="tasks">
+          <li><code>POST /register</code> — validate fields, check duplicate email, hash password with <code>bcryptjs</code>, create user</li>
+          <li><code>POST /login</code> — verify credentials, sign a JWT (<code>7d</code> expiry) and return it</li>
+          <li><code>middleware/auth.ts</code> — parse <code>Authorization: Bearer &lt;token&gt;</code>, verify, attach <code>req.userId</code></li>
+          <li>Return meaningful 400 / 401 errors (missing fields, invalid creds, invalid/expired token)</li>
+        </ul>
+        <span class="deliverable">✓ Token works, and unauthorized requests get 401</span>
+      </div>
+    </div>
+
+    <div class="phase">
+      <span class="pill">Phase 4 · 60 marks</span>
+      <h3>Protected Cart API</h3>
+      <p class="goal">Per-user cart endpoints, all locked behind the JWT middleware.</p>
+      <div class="card">
+        <ul class="tasks">
+          <li><code>POST /cart</code> — body <code>{ productId, quantity }</code>; verify product exists &amp; has stock, upsert into cart</li>
+          <li><code>PUT /cart/:productId</code> — update quantity (validate it&#39;s a number ≥ 1)</li>
+          <li><code>DELETE /cart/:productId</code> — remove item from cart</li>
+          <li><code>GET /cart</code> — fetch the user&#39;s cart (bonus, useful for testing)</li>
+          <li>Reject adding a non-existent product before touching the cart (validation requirement)</li>
+        </ul>
+        <span class="deliverable">✓ Every cart route returns 401 without a valid token</span>
+      </div>
+    </div>
+
+    <div class="phase">
+      <span class="pill">Phase 5 · 20 marks</span>
+      <h3>Error Handling &amp; Validation Polish</h3>
+      <p class="goal">Central, consistent error responses across all routes.</p>
+      <div class="card">
+        <ul class="tasks">
+          <li>Custom <code>AppError</code> class + global <code>errorHandler</code> middleware</li>
+          <li>404 catch-all handler for unknown routes</li>
+          <li><code>asyncHandler</code> wrapper so thrown errors reach the global handler</li>
+          <li>Input validation helpers for IDs, quantities, emails, and required fields</li>
+          <li>Mongoose duplicate-key &amp; cast errors mapped to readable 400s</li>
+        </ul>
+        <span class="deliverable">✓ Every request returns a consistent <code>{ success, message }</code> shape</span>
+      </div>
+    </div>
+
+    <div class="phase">
+      <span class="pill">Phase 6 · 35 marks</span>
+      <h3>Testing &amp; Deliverables</h3>
+      <p class="goal">Prove every route works and package the evidence.</p>
+      <div class="card">
+        <ul class="tasks">
+          <li>ThunderClient collection covering all 8 endpoints (happy + error paths)</li>
+          <li>Save environment variables (<code>BASE_URL</code>, <code>TOKEN</code>) in ThunderClient</li>
+          <li>Export the collection JSON and add it to the repo</li>
+          <li>Capture screenshots: MongoDB Compass + ThunderClient for each route</li>
+          <li>Write <code>README.md</code> — setup steps, API reference, screenshots</li>
+        </ul>
+        <span class="deliverable">✓ Complete, reproducible, submission-ready repo</span>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 class="section"><span class="num">3</span>Proposed Project Structure</h2>
+  <pre class="tree"><span class="d">shoppy_globe_be/</span>
+├── src/
+│   ├── server.ts                  <span class="c"># entry point</span>
+│   ├── app.ts                     <span class="c"># express app, middleware, routes</span>
+│   ├── config/
+│   │   └── db.ts                  <span class="c"># mongoose connection</span>
+│   ├── models/
+│   │   ├── User.ts
+│   │   ├── Product.ts
+│   │   └── Cart.ts
+│   ├── controllers/
+│   │   ├── authController.ts
+│   │   ├── productController.ts
+│   │   └── cartController.ts
+│   ├── routes/
+│   │   ├── authRoutes.ts
+│   │   ├── productRoutes.ts
+│   │   └── cartRoutes.ts
+│   ├── middleware/
+│   │   ├── auth.ts                <span class="c"># JWT verification</span>
+│   │   └── errorHandler.ts
+│   ├── utils/
+│   │   ├── AppError.ts
+│   │   └── asyncHandler.ts
+│   └── seed.ts                    <span class="c"># product seed script</span>
+├── thunderclient/                 <span class="c"># exported collection JSON</span>
+├── screenshots/                   <span class="c"># Compass + ThunderClient evidence</span>
+├── .env.example
+├── .gitignore
+├── package.json
+├── tsconfig.json
+└── README.md</pre>
+
+  <h2 class="section"><span class="num">4</span>API Surface</h2>
+  <div class="card" style="padding:0; overflow:hidden;">
+    <table>
+      <thead>
+        <tr><th>Method</th><th>Path</th><th>Auth</th><th>Purpose</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="method m-get">GET</span></td><td><code class="path">/api/products</code></td><td class="lock">Public</td><td>List all products</td></tr>
+        <tr><td><span class="method m-get">GET</span></td><td><code class="path">/api/products/:id</code></td><td class="lock">Public</td><td>Fetch single product</td></tr>
+        <tr><td><span class="method m-post">POST</span></td><td><code class="path">/api/auth/register</code></td><td class="lock">Public</td><td>Register a user</td></tr>
+        <tr><td><span class="method m-post">POST</span></td><td><code class="path">/api/auth/login</code></td><td class="lock">Public</td><td>Login → JWT token</td></tr>
+        <tr><td><span class="method m-post">POST</span></td><td><code class="path">/api/cart</code></td><td>🔒 JWT</td><td>Add product to cart</td></tr>
+        <tr><td><span class="method m-put">PUT</span></td><td><code class="path">/api/cart/:productId</code></td><td>🔒 JWT</td><td>Update quantity</td></tr>
+        <tr><td><span class="method m-del">DEL</span></td><td><code class="path">/api/cart/:productId</code></td><td>🔒 JWT</td><td>Remove from cart</td></tr>
+        <tr><td><span class="method m-get">GET</span></td><td><code class="path">/api/cart</code></td><td>🔒 JWT</td><td>View cart (bonus)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="section"><span class="num">5</span>Submission Checklist</h2>
+  <div class="grid2">
+    <div class="card">
+      <ul class="checklist">
+        <li>All 8 routes implemented and working</li>
+        <li>Cart routes reject unauthenticated users</li>
+        <li>Invalid product ID rejected before cart write</li>
+        <li>Centralized error handling on every route</li>
+        <li>MongoDB Compass screenshots of all 3 collections</li>
+      </ul>
+    </div>
+    <div class="card">
+      <ul class="checklist">
+        <li>ThunderClient collection exported &amp; committed</li>
+        <li>ThunderClient screenshots for every endpoint</li>
+        <li>Sample JWT token generated &amp; verified</li>
+        <li>Seed data present (products visible in DB)</li>
+        <li>README with setup + testing instructions</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>Generated for ShoppyGlobe backend — plan.html · 2026</footer>
+</div>
+</body>
+</html>
