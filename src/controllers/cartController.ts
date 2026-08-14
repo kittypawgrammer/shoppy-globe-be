@@ -1,48 +1,37 @@
-import { isValidObjectId } from "mongoose";
 import type { Request, Response } from "express";
 import Cart from "../models/Cart.js";
 import Product from "../models/Product.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import AppError from "../utils/AppError.js";
+import { isValidId, isValidQuantity } from "../utils/validation.js";
 
-function parseQuantity(value: unknown): number | null {
-  if (typeof value !== "number" || !Number.isInteger(value) || value < 1) {
-    return null;
-  }
-  return value;
-}
-
-export async function addItem(req: Request, res: Response) {
+export const addItem = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const { productId, quantity } = req.body ?? {};
 
   if (typeof productId !== "string" || !productId.trim()) {
-    res.status(400).json({ success: false, message: "Product id is required" });
-    return;
+    throw new AppError(400, "Product id is required");
   }
 
-  if (!isValidObjectId(productId)) {
-    res.status(400).json({ success: false, message: "Invalid product id format" });
-    return;
+  if (!isValidId(productId)) {
+    throw new AppError(400, "Invalid product id format");
   }
 
-  const validQuantity = parseQuantity(quantity);
-  if (validQuantity === null) {
-    res.status(400).json({
-      success: false,
-      message: "Quantity must be an integer greater than or equal to 1",
-    });
-    return;
+  if (!isValidQuantity(quantity)) {
+    throw new AppError(
+      400,
+      "Quantity must be an integer greater than or equal to 1"
+    );
   }
 
   const product = await Product.findById(productId);
 
   if (!product) {
-    res.status(404).json({ success: false, message: "Product not found" });
-    return;
+    throw new AppError(404, "Product not found");
   }
 
   if (product.stock < 1) {
-    res.status(400).json({ success: false, message: "Product is out of stock" });
-    return;
+    throw new AppError(400, "Product is out of stock");
   }
 
   let cart = await Cart.findByUser(userId);
@@ -51,86 +40,83 @@ export async function addItem(req: Request, res: Response) {
     cart = new Cart({ userId });
   }
 
-  await cart.addItem(productId, validQuantity);
+  await cart.addItem(productId, quantity);
 
   res.json({ success: true, message: "Product added to cart", data: cart });
-}
+});
 
-export async function updateQuantity(req: Request, res: Response) {
+export const updateQuantity = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = req.userId as string;
+    const productId = req.params.productId as string;
+    const { quantity } = req.body ?? {};
+
+    if (!isValidId(productId)) {
+      throw new AppError(400, "Invalid product id format");
+    }
+
+    if (!isValidQuantity(quantity)) {
+      throw new AppError(
+        400,
+        "Quantity must be an integer greater than or equal to 1"
+      );
+    }
+
+    const cart = await Cart.findByUser(userId);
+
+    if (!cart) {
+      throw new AppError(404, "Item not in cart");
+    }
+
+    const item = cart.items.find(
+      (item) => item.productId.toString() === productId
+    );
+
+    if (!item) {
+      throw new AppError(404, "Item not in cart");
+    }
+
+    await cart.updateItemQuantity(productId, quantity);
+
+    res.json({ success: true, message: "Cart updated", data: cart });
+  }
+);
+
+export const removeItem = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const productId = req.params.productId as string;
-  const { quantity } = req.body ?? {};
 
-  if (!isValidObjectId(productId)) {
-    res.status(400).json({ success: false, message: "Invalid product id format" });
-    return;
-  }
-
-  const validQuantity = parseQuantity(quantity);
-  if (validQuantity === null) {
-    res.status(400).json({
-      success: false,
-      message: "Quantity must be an integer greater than or equal to 1",
-    });
-    return;
+  if (!isValidId(productId)) {
+    throw new AppError(400, "Invalid product id format");
   }
 
   const cart = await Cart.findByUser(userId);
 
   if (!cart) {
-    res.status(404).json({ success: false, message: "Item not in cart" });
-    return;
+    throw new AppError(404, "Item not in cart");
   }
 
-  const item = cart.items.find((item) => item.productId.toString() === productId);
+  const item = cart.items.find(
+    (item) => item.productId.toString() === productId
+  );
 
   if (!item) {
-    res.status(404).json({ success: false, message: "Item not in cart" });
-    return;
-  }
-
-  await cart.updateItemQuantity(productId, validQuantity);
-
-  res.json({ success: true, message: "Cart updated", data: cart });
-}
-
-export async function removeItem(req: Request, res: Response) {
-  const userId = req.userId as string;
-  const productId = req.params.productId as string;
-
-  if (!isValidObjectId(productId)) {
-    res.status(400).json({ success: false, message: "Invalid product id format" });
-    return;
-  }
-
-  const cart = await Cart.findByUser(userId);
-
-  if (!cart) {
-    res.status(404).json({ success: false, message: "Item not in cart" });
-    return;
-  }
-
-  const item = cart.items.find((item) => item.productId.toString() === productId);
-
-  if (!item) {
-    res.status(404).json({ success: false, message: "Item not in cart" });
-    return;
+    throw new AppError(404, "Item not in cart");
   }
 
   await cart.removeItem(productId);
 
   res.json({ success: true, message: "Product removed from cart" });
-}
+});
 
-export async function getCart(req: Request, res: Response) {
+export const getCart = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.userId as string;
 
   const cart = await Cart.findByUser(userId);
 
   if (!cart) {
-    res.status(404).json({ success: false, message: "No cart exists yet" });
-    return;
+    throw new AppError(404, "No cart exists yet");
   }
 
   res.json({ success: true, data: cart });
-}
+});

@@ -1,8 +1,10 @@
 import cors from "cors";
 import express from "express";
+import { errorHandler } from "./middleware/errorHandler.js";
 import authRoutes from "./routes/authRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
+import AppError from "./utils/AppError.js";
 
 const app = express();
 
@@ -16,5 +18,11 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/products", productRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/cart", cartRoutes);
+
+app.use((_req, _res, next) => {
+  next(new AppError(404, "Route not found"));
+});
+
+app.use(errorHandler);
 
 export default app;
