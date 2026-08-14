@@ -90,7 +90,19 @@ ObjectId → `404`.
 
 **Error test:** wrong password → `401`.
 
-### 6. Add to Cart (protected)
+### 6. Fetch Current User (protected)
+
+| Field | Value |
+| --- | --- |
+| Method | `GET` |
+| URL | `{{BASE_URL}}/auth/me` |
+| Headers | `Authorization: Bearer {{TOKEN}}` |
+
+**Expected:** `200` with `{ "success": true, "data": { "id", "name", "email" } }`.
+
+**Error test:** remove the Authorization header → `401`.
+
+### 7. Add to Cart (protected)
 
 | Field | Value |
 | --- | --- |
@@ -103,7 +115,7 @@ ObjectId → `404`.
 
 **Error test:** remove the Authorization header → `401`.
 
-### 7. Update Quantity (protected)
+### 8. Update Quantity (protected)
 
 | Field | Value |
 | --- | --- |
@@ -116,7 +128,7 @@ ObjectId → `404`.
 
 **Error test:** quantity `0` → `400`.
 
-### 8. View Cart (protected)
+### 9. View Cart (protected)
 
 | Field | Value |
 | --- | --- |
@@ -126,7 +138,7 @@ ObjectId → `404`.
 
 **Expected:** `200` with the cart items.
 
-### 9. Delete from Cart (protected)
+### 10. Delete from Cart (protected)
 
 | Field | Value |
 | --- | --- |
@@ -153,6 +165,7 @@ ObjectId → `404`.
 - [ ] GET `/products/:id` (happy path + 404)
 - [ ] POST `/auth/register`
 - [ ] POST `/auth/login`
+- [ ] GET `/auth/me` (with and without token → 401)
 - [ ] POST `/cart` (with and without token → 401)
 - [ ] PUT `/cart/:productId`
 - [ ] DELETE `/cart/:productId`
