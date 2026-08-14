@@ -45,13 +45,13 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     throw new AppError(400, "Invalid email format");
   }
 
-  if (typeof password !== "string" || password.length < 6) {
-    throw new AppError(400, "Password must be at least 6 characters");
-  }
-
   const existing = await User.findOne({ email: cleanEmail });
   if (existing) {
     throw new AppError(409, "Email already registered");
+  }
+
+  if (typeof password !== "string" || password.length < 6) {
+    throw new AppError(400, "Password must be at least 6 characters");
   }
 
   const user = await User.create({
