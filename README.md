@@ -12,6 +12,7 @@ catalog, JWT-based authentication, and a per-user protected cart.
 - Consistent response shape — `{ success, data }` / `{ success: false, message }`
 - Centralized error handling + input validation (400 / 401 / 404 / 409)
 - Idempotent product seeding
+- Interactive API docs via Swagger UI at `/api-docs`
 
 ## Tech Stack
 
@@ -22,6 +23,7 @@ catalog, JWT-based authentication, and a per-user protected cart.
 | Language | TypeScript 7 (`tsc`, `moduleResolution: NodeNext`) |
 | Database | MongoDB via Mongoose 9 |
 | Auth | `jsonwebtoken` + `bcryptjs` |
+| API docs | Swagger UI + OpenAPI 3.0 (`docs/openapi.yaml`) |
 
 ## Getting Started
 
@@ -126,6 +128,18 @@ All protected routes require an `Authorization: Bearer <token>` header.
 
 Detailed request/response examples: [`docs/API.md`](docs/API.md).
 
+## Interactive API Docs (Swagger)
+
+A live Swagger UI is served at:
+
+```
+http://localhost:3000/api-docs
+```
+
+It is generated from [`docs/openapi.yaml`](docs/openapi.yaml) (OpenAPI 3.0.3).
+Click the **Authorize** button and paste the token from `POST /auth/login` to
+try the protected cart endpoints directly from the browser.
+
 ## Testing with ThunderClient
 
 A ready-to-import collection is committed at
@@ -167,7 +181,7 @@ src/
 ├── middleware/          # auth, errorHandler, asyncHandler
 ├── utils/               # AppError, validation helpers
 └── seed.ts              # Idempotent product seeding
-docs/                    # API, setup, schema, testing, requirements
+docs/                    # API, setup, schema, testing, requirements, OpenAPI spec
 thunderclient/           # Exported ThunderClient collection
 screenshots/             # Evidence screenshots + checklist
 ```
