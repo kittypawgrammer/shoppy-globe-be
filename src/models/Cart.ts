@@ -1,4 +1,4 @@
-import { Schema, model, type InferSchemaType } from "mongoose";
+import { Model, Schema, Types, model, type InferSchemaType } from "mongoose";
 
 const cartItemSchema = new Schema(
   {
@@ -73,6 +73,29 @@ cartSchema.methods.removeItem = function (productId: string): Promise<unknown> {
   return this.save();
 };
 
-export type Cart = InferSchemaType<typeof cartSchema>;
+interface CartItem {
+  productId: Types.ObjectId | string;
+  quantity: number;
+}
 
-export default model<Cart>("Cart", cartSchema);
+interface CartMethods {
+  addItem(productId: string, quantity: number): Promise<CartDocument>;
+  updateItemQuantity(productId: string, quantity: number): Promise<CartDocument>;
+  removeItem(productId: string): Promise<CartDocument>;
+}
+
+interface CartStatics {
+  findByUser(userId: string): Promise<CartDocument | null>;
+}
+
+type Cart = InferSchemaType<typeof cartSchema>;
+
+type CartDoc = Omit<Cart, "userId"> & { userId: Types.ObjectId | string };
+
+interface CartDocument extends CartDoc, CartMethods {}
+
+interface CartModel extends Model<CartDocument>, CartStatics {}
+
+export type { CartDocument };
+
+export default model("Cart", cartSchema) as unknown as CartModel;
