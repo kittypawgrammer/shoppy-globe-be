@@ -147,6 +147,30 @@ Authenticate a user and return a JWT.
 
 ---
 
+### GET `/auth/me`
+
+Fetch the profile of the authenticated user.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response 200**
+
+```json
+{
+  "success": true,
+  "data": { "id": "...", "name": "Alice", "email": "alice@example.com" }
+}
+```
+
+**Errors**
+
+| Status | Case |
+| --- | --- |
+| 401 | No/invalid token |
+| 404 | User not found |
+
+---
+
 ## Protected Routes (require JWT)
 
 Header: `Authorization: Bearer <token>`

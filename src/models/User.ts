@@ -31,4 +31,8 @@ userSchema.methods.comparePassword = function (
 
 export type User = InferSchemaType<typeof userSchema>;
 
-export default model<User>("User", userSchema);
+export interface UserDocument extends User {
+  comparePassword(candidatePassword: string): Promise<boolean>;
+}
+
+export default model<UserDocument>("User", userSchema);
