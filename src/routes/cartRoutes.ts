@@ -9,6 +9,7 @@ import { authenticate } from "../middleware/auth.js";
 
 const router = Router();
 
+// Every cart route requires a valid JWT; the middleware attaches req.userId.
 router.use(authenticate);
 
 router.get("/", getCart);

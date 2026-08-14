@@ -7,6 +7,9 @@ import productRoutes from "./routes/productRoutes.js";
 import { swaggerDocument, swaggerUi } from "./swagger.js";
 import AppError from "./utils/AppError.js";
 
+// Express application wiring: global middleware, routers, the 404 catch-all
+// and the error handler. Kept separate from server.ts so it can be imported
+// independently of the network bootstrap.
 const app = express();
 
 app.use(cors());

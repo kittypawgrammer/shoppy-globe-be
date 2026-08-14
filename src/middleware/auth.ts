@@ -4,6 +4,12 @@ import AppError from "../utils/AppError.js";
 
 const JWT_SECRET = process.env.JWT_SECRET ?? "";
 
+/**
+ * Express middleware that verifies the `Authorization: Bearer <token>` header
+ * and attaches the verified user id to `req.userId`. Forwards an `AppError`
+ * (401 for missing/invalid tokens, 500 when `JWT_SECRET` is unset) to the
+ * error handler.
+ */
 export function authenticate(req: Request, _res: Response, next: NextFunction) {
   const header = req.headers.authorization;
 

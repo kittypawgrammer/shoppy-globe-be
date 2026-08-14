@@ -1,3 +1,5 @@
+// Bootstrap: load env vars, connect to MongoDB, then start listening. The
+// process exits if the database is unreachable (see config/db.ts).
 import "dotenv/config";
 
 import app from "./app.js";

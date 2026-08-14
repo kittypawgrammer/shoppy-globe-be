@@ -5,6 +5,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import AppError from "../utils/AppError.js";
 import { isValidId, isValidQuantity } from "../utils/validation.js";
 
+/** POST /cart — adds a product to the current user's cart. */
 export const addItem = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const { productId, quantity } = req.body ?? {};
@@ -45,6 +46,7 @@ export const addItem = asyncHandler(async (req: Request, res: Response) => {
   res.json({ success: true, message: "Product added to cart", data: cart });
 });
 
+/** PUT /cart/:productId — sets the quantity of an existing cart item. */
 export const updateQuantity = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.userId as string;
@@ -82,6 +84,7 @@ export const updateQuantity = asyncHandler(
   }
 );
 
+/** DELETE /cart/:productId — removes a product from the current user's cart. */
 export const removeItem = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const productId = req.params.productId as string;
@@ -109,6 +112,7 @@ export const removeItem = asyncHandler(async (req: Request, res: Response) => {
   res.json({ success: true, message: "Product removed from cart" });
 });
 
+/** GET /cart — returns the current user's cart (404 if none exists yet). */
 export const getCart = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.userId as string;
 

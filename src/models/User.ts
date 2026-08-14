@@ -16,6 +16,8 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
+// Hash the password before persisting, but only when it actually changed so
+// unrelated saves (e.g. profile updates) do not re-hash an already hashed value.
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
 
@@ -23,6 +25,7 @@ userSchema.pre("save", async function () {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
+/** Verifies a candidate password against the stored bcrypt hash. */
 userSchema.methods.comparePassword = function (
   candidatePassword: string
 ): Promise<boolean> {

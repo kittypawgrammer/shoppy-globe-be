@@ -9,10 +9,12 @@ const JWT_SECRET = process.env.JWT_SECRET ?? "";
 const JWT_EXPIRES_IN: jwt.SignOptions["expiresIn"] =
   (process.env.JWT_EXPIRES_IN ?? "7d") as jwt.SignOptions["expiresIn"];
 
+/** Signs a JWT that embeds the user id and expires after `JWT_EXPIRES_IN`. */
 function signToken(userId: string): string {
   return jwt.sign({ userId }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 }
 
+/** Strips sensitive fields (e.g. the hashed password) from a user document. */
 function toPublicUser(user: {
   _id: unknown;
   name: string;
@@ -25,6 +27,7 @@ function toPublicUser(user: {
   };
 }
 
+/** POST /auth/register — validates input, rejects duplicates, creates the user. */
 export const register = asyncHandler(async (req: Request, res: Response) => {
   const { name, email, password } = req.body ?? {};
 
@@ -64,6 +67,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
+/** POST /auth/login — verifies credentials and returns a JWT on success. */
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body ?? {};
 
@@ -89,6 +93,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
+/** GET /auth/me — returns the profile of the authenticated user. */
 export const me = asyncHandler(async (req: Request, res: Response) => {
   const user = await User.findById(req.userId);
 

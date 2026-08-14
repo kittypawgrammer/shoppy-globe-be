@@ -15,6 +15,12 @@ function isDuplicateKeyError(error: unknown): error is DuplicateKeyError {
   );
 }
 
+/**
+ * Global error-handling middleware. Maps known error types (`AppError`,
+ * Mongoose cast/validation errors, duplicate-key violations) to consistent
+ * `{ success: false, message }` JSON responses; anything else becomes a 500
+ * and is logged to the console.
+ */
 export function errorHandler(
   error: unknown,
   _req: Request,

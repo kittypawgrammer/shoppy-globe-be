@@ -16,6 +16,7 @@ export async function connectDB(): Promise<void> {
     console.warn("MongoDB disconnected");
   });
 
+  // Close the connection cleanly on Ctrl+C so pending writes are flushed.
   process.on("SIGINT", async () => {
     await mongoose.connection.close();
     console.log("MongoDB connection closed");
@@ -25,6 +26,7 @@ export async function connectDB(): Promise<void> {
   try {
     await mongoose.connect(MONGODB_URI);
   } catch (error) {
+    // A missing database is fatal for the API — there is nothing to serve.
     console.error("Failed to connect to MongoDB:", error);
     process.exit(1);
   }

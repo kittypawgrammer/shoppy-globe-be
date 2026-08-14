@@ -29,6 +29,7 @@ cartSchema.statics.findByUser = function (userId: string) {
   return this.findOne({ userId });
 };
 
+/** Adds a product to the cart, incrementing the quantity if already present. */
 cartSchema.methods.addItem = function (
   productId: string,
   quantity: number
@@ -47,6 +48,7 @@ cartSchema.methods.addItem = function (
   return this.save();
 };
 
+/** Sets the quantity of an existing cart item (appends it if not present). */
 cartSchema.methods.updateItemQuantity = function (
   productId: string,
   quantity: number
@@ -65,6 +67,7 @@ cartSchema.methods.updateItemQuantity = function (
   return this.save();
 };
 
+/** Removes a product from the cart. */
 cartSchema.methods.removeItem = function (productId: string): Promise<unknown> {
   this.items = this.items.filter(
     (item: { productId: { toString: () => string } }) =>

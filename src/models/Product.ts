@@ -11,6 +11,7 @@ const productSchema = new Schema(
   { timestamps: true }
 );
 
+// Text index on the product name to support the search endpoint.
 productSchema.index({ name: "text" });
 
 productSchema.statics.findByName = function (name: string) {

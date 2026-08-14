@@ -1,3 +1,5 @@
+// Idempotent product seeding: only inserts sample products when the `products`
+// collection is empty, so it is safe to run repeatedly.
 import "dotenv/config";
 
 import mongoose from "mongoose";
@@ -81,6 +83,7 @@ async function seed() {
   try {
     await connectDB();
 
+    // Skip when data already exists so re-running never duplicates products.
     const count = await Product.countDocuments();
 
     if (count > 0) {

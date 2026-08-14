@@ -7,10 +7,15 @@ import { isValidId } from "../utils/validation.js";
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 100;
 
+// Escapes regex metacharacters so user input is matched literally, not as a pattern.
 function escapeRegex(input: string): string {
   return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+/**
+ * GET /products — lists products, optionally filtered by `?search=` (name
+ * substring) and capped by `?limit=` (default 50, max 100).
+ */
 export const list = asyncHandler(async (req: Request, res: Response) => {
   const search =
     typeof req.query.search === "string" ? req.query.search.trim() : "";
@@ -30,6 +35,7 @@ export const list = asyncHandler(async (req: Request, res: Response) => {
   res.json({ success: true, count: products.length, data: products });
 });
 
+/** GET /products/:id — returns a single product or 400/404 on bad/missing ids. */
 export const getOne = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
 
