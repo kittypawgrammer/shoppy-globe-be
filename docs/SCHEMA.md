@@ -39,7 +39,8 @@ Stores the catalog items shown via `GET /products`.
 }
 ```
 
-**Indexes:** none required (queries are by `_id` and `name` substring).
+**Indexes:** text index on `name` (declared in the schema; the list endpoint
+currently filters with a case-insensitive regex rather than a text query).
 
 ---
 
@@ -53,6 +54,7 @@ Stores registered accounts.
 | `email` | string | ✅ | Unique; normalized to lowercase |
 | `password` | string | ✅ | Hashed with `bcryptjs` (never stored plain) |
 | `createdAt` | Date | auto | Set by Mongoose timestamps |
+| `updatedAt` | Date | auto | Set by Mongoose timestamps |
 
 **Example document**
 
@@ -62,7 +64,8 @@ Stores registered accounts.
   "name": "Alice",
   "email": "alice@example.com",
   "password": "$2a$10$eQdPzq5...hashed...",
-  "createdAt": "2024-01-01T10:00:00.000Z"
+  "createdAt": "2024-01-01T10:00:00.000Z",
+  "updatedAt": "2024-01-01T10:00:00.000Z"
 }
 ```
 
@@ -120,7 +123,7 @@ No foreign keys are used; references are stored as `ObjectId`s.
 
 ## Seeding
 
-`npm run seed` inserts ~10 documents into `products`. The script:
+`npm run seed` inserts 10 documents into `products`. The script:
 
 1. Drops nothing (safe) — checks if products already exist
 2. Inserts only when the collection is empty (idempotent)

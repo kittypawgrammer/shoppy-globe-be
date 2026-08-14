@@ -1,5 +1,8 @@
 # API Reference
 
+> This document mirrors the OpenAPI spec in [`openapi.yaml`](openapi.yaml), which
+> also powers the live Swagger UI at `http://localhost:3000/api-docs`.
+
 Base URL: `http://localhost:3000/api`
 
 All protected routes require an `Authorization: Bearer <token>` header.
