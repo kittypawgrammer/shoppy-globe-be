@@ -1,12 +1,13 @@
 import type { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import User, { type UserDocument } from "../models/User.js";
+import User from "../models/User.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import AppError from "../utils/AppError.js";
+import { isValidEmail, requiredString } from "../utils/validation.js";
 
 const JWT_SECRET = process.env.JWT_SECRET ?? "";
 const JWT_EXPIRES_IN: jwt.SignOptions["expiresIn"] =
   (process.env.JWT_EXPIRES_IN ?? "7d") as jwt.SignOptions["expiresIn"];
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function signToken(userId: string): string {
   return jwt.sign({ userId }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
@@ -24,85 +25,61 @@ function toPublicUser(user: {
   };
 }
 
-export async function register(req: Request, res: Response) {
+export const register = asyncHandler(async (req: Request, res: Response) => {
   const { name, email, password } = req.body ?? {};
 
-  if (typeof name !== "string" || !name.trim()) {
-    res.status(400).json({ success: false, message: "Name is required" });
-    return;
+  const cleanName = requiredString(name);
+  if (!cleanName) {
+    throw new AppError(400, "Name is required");
   }
 
-  const normalizedEmail =
-    typeof email === "string" ? email.trim().toLowerCase() : "";
-
-  if (!normalizedEmail) {
-    res.status(400).json({ success: false, message: "Email is required" });
-    return;
+  const cleanEmail = requiredString(email)?.toLowerCase();
+  if (!cleanEmail) {
+    throw new AppError(400, "Email is required");
   }
 
-  if (!EMAIL_REGEX.test(normalizedEmail)) {
-    res.status(400).json({ success: false, message: "Invalid email format" });
-    return;
+  if (!isValidEmail(cleanEmail)) {
+    throw new AppError(400, "Invalid email format");
   }
 
   if (typeof password !== "string" || password.length < 6) {
-    res
-      .status(400)
-      .json({
-        success: false,
-        message: "Password must be at least 6 characters",
-      });
-    return;
+    throw new AppError(400, "Password must be at least 6 characters");
   }
 
-  const existing = await User.findOne({ email: normalizedEmail });
+  const existing = await User.findOne({ email: cleanEmail });
   if (existing) {
-    res.status(409).json({ success: false, message: "Email already registered" });
-    return;
+    throw new AppError(409, "Email already registered");
   }
 
-  try {
-    const user = await User.create({
-      name: name.trim(),
-      email: normalizedEmail,
-      password,
-    });
+  const user = await User.create({
+    name: cleanName,
+    email: cleanEmail,
+    password,
+  });
 
-    res.status(201).json({
-      success: true,
-      message: "User registered successfully",
-      data: toPublicUser(user),
-    });
-  } catch (error) {
-    if ((error as { code?: number })?.code === 11000) {
-      res.status(409).json({ success: false, message: "Email already registered" });
-      return;
-    }
-    throw error;
-  }
-}
+  res.status(201).json({
+    success: true,
+    message: "User registered successfully",
+    data: toPublicUser(user),
+  });
+});
 
-export async function login(req: Request, res: Response) {
+export const login = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body ?? {};
 
-  const normalizedEmail =
-    typeof email === "string" ? email.trim().toLowerCase() : "";
-
-  if (!normalizedEmail) {
-    res.status(400).json({ success: false, message: "Email is required" });
-    return;
+  const cleanEmail = requiredString(email)?.toLowerCase();
+  if (!cleanEmail) {
+    throw new AppError(400, "Email is required");
   }
 
   if (typeof password !== "string" || !password) {
-    res.status(400).json({ success: false, message: "Password is required" });
-    return;
+    throw new AppError(400, "Password is required");
   }
 
-  const user = await User.findOne({ email: normalizedEmail }).select("+password");
+  const user = await User.findOne({ email: cleanEmail }).select("+password");
 
   if (!user || !(await user.comparePassword(password))) {
-    res.status(401).json({ success: false, message: "Invalid email or password" });
-    return;
+    throw new AppError(401, "Invalid email or password");
   }
 
   res.json({
@@ -110,15 +87,14 @@ export async function login(req: Request, res: Response) {
     message: "Login successful",
     data: { token: signToken(user._id.toString()), user: toPublicUser(user) },
   });
-}
+});
 
-export async function me(req: Request, res: Response) {
+export const me = asyncHandler(async (req: Request, res: Response) => {
   const user = await User.findById(req.userId);
 
   if (!user) {
-    res.status(404).json({ success: false, message: "User not found" });
-    return;
+    throw new AppError(404, "User not found");
   }
 
   res.json({ success: true, data: toPublicUser(user) });
-}
+});

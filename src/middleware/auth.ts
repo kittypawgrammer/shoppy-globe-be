@@ -1,21 +1,19 @@
 import type { NextFunction, Request, Response } from "express";
 import jwt, { type JwtPayload } from "jsonwebtoken";
+import AppError from "../utils/AppError.js";
 
 const JWT_SECRET = process.env.JWT_SECRET ?? "";
 
-export function authenticate(req: Request, res: Response, next: NextFunction) {
+export function authenticate(req: Request, _res: Response, next: NextFunction) {
   const header = req.headers.authorization;
 
   if (!header?.startsWith("Bearer ")) {
-    res.status(401).json({ success: false, message: "No token provided" });
+    next(new AppError(401, "No token provided"));
     return;
   }
 
   if (!JWT_SECRET) {
-    res.status(500).json({
-      success: false,
-      message: "JWT_SECRET is not configured",
-    });
+    next(new AppError(500, "JWT_SECRET is not configured"));
     return;
   }
 
@@ -24,6 +22,6 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
     req.userId = String(payload.userId);
     next();
   } catch {
-    res.status(401).json({ success: false, message: "Invalid or expired token" });
+    next(new AppError(401, "Invalid or expired token"));
   }
 }

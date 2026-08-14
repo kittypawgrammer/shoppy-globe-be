@@ -1,6 +1,8 @@
-import { isValidObjectId } from "mongoose";
 import type { Request, Response } from "express";
 import Product from "../models/Product.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import AppError from "../utils/AppError.js";
+import { isValidId } from "../utils/validation.js";
 
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 100;
@@ -9,7 +11,7 @@ function escapeRegex(input: string): string {
   return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-export async function list(req: Request, res: Response) {
+export const list = asyncHandler(async (req: Request, res: Response) => {
   const search =
     typeof req.query.search === "string" ? req.query.search.trim() : "";
 
@@ -26,22 +28,20 @@ export async function list(req: Request, res: Response) {
   const products = await Product.find(query).limit(limit);
 
   res.json({ success: true, count: products.length, data: products });
-}
+});
 
-export async function getOne(req: Request, res: Response) {
+export const getOne = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
 
-  if (!isValidObjectId(id)) {
-    res.status(400).json({ success: false, message: "Invalid product id format" });
-    return;
+  if (!isValidId(id)) {
+    throw new AppError(400, "Invalid product id format");
   }
 
   const product = await Product.findById(id);
 
   if (!product) {
-    res.status(404).json({ success: false, message: "Product not found" });
-    return;
+    throw new AppError(404, "Product not found");
   }
 
   res.json({ success: true, data: product });
-}
+});
